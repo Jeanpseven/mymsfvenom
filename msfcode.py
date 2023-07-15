@@ -7,6 +7,16 @@ def check_msfvenom_installed():
     except subprocess.CalledProcessError:
         return False
 
+def install_msfvenom():
+    try:
+        print("Iniciando a instalação do msfvenom...")
+        subprocess.run("pkg install -y metasploit", shell=True, check=True)
+        print("msfvenom foi instalado com sucesso!")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Erro ao instalar o msfvenom: {e}")
+        return False
+
 def check_veil_installed():
     try:
         subprocess.run("veil --version", shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -34,6 +44,7 @@ def list_modules():
     print("6. Pesquisa avançada por alvo e serviço")
     print("7. Informações sobre um módulo")
     print("8. Instalar Veil-Framework")
+    print("9. Atualizar Ferramentas")
     print("0. Sair")
 
 def search_modules(search_term):
@@ -61,6 +72,30 @@ def show_module_info(payload_type):
     except subprocess.CalledProcessError as e:
         print(f"Erro ao obter informações sobre o módulo: {e}")
 
+def customize_payload_options(payload_options):
+    print("\nOpções adicionais do Payload:")
+    print("1. Persistência (Adicionar persistência ao payload)")
+    print("2. Camuflagem (Tornar o payload mais indetectável)")
+    print("3. Evasão de Antivírus (Alterar o payload para evitar detecção de AV)")
+    print("0. Voltar ao menu anterior")
+
+    while True:
+        choice = input("Digite o número da opção desejada: ")
+
+        if choice == "1":
+            payload_options += " --persist"
+        elif choice == "2":
+            payload_options += " --cloak"
+        elif choice == "3":
+            payload_options += " --evasion"
+        elif choice == "0":
+            break
+        else:
+            print("Opção inválida! Tente novamente.")
+            continue
+
+    return payload_options
+
 def generate_payload(payload_type, payload_options, output_file):
     command = f"msfvenom -p {payload_type} {payload_options} -o {output_file}"
 
@@ -83,18 +118,29 @@ def create_listener():
     except KeyboardInterrupt:
         print("Ouvinte encerrado.")
 
+def update_tools():
+    try:
+        print("Atualizando ferramentas...")
+        subprocess.run("pkg update -y", shell=True, check=True)
+        subprocess.run("pkg upgrade -y", shell=True, check=True)
+        print("Ferramentas atualizadas com sucesso!")
+    except subprocess.CalledProcessError as e:
+        print(f"Erro ao atualizar as ferramentas: {e}")
+
 def main():
     print("Bem-vindo ao gerador de payloads usando msfvenom!")
 
     if not check_msfvenom_installed():
-        print("O msfvenom não está instalado no sistema.")
-        print("Certifique-se de tê-lo instalado para usar este script.")
-        return
+        if not install_msfvenom():
+            print("Não foi possível instalar o msfvenom. O programa será encerrado.")
+            return
 
     while True:
         print("\nMENU INICIAL:")
         print("1. Abrir Listener")
         print("2. Criar Exploits e Payloads")
+        print("3. Instalar Veil-Framework")
+        print("4. Atualizar Ferramentas")
         print("0. Sair")
 
         choice = input("Digite o número da opção desejada: ")
@@ -151,8 +197,17 @@ def main():
                         print("Por favor, preencha todas as informações necessárias.")
                         continue
 
+                    payload_options = customize_payload_options(payload_options)
+
                     generate_payload(payload_type, payload_options, output_file)
 
+        elif choice == "3":
+            if not check_veil_installed():
+                install_veil()
+            else:
+                print("O Veil-Framework já está instalado.")
+        elif choice == "4":
+            update_tools()
         elif choice == "0":
             print("Saindo...")
             break
